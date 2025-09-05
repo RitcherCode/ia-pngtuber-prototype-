@@ -1,9 +1,14 @@
 // src/bot.js
-// Bot de Twitch + integración con watcher.js para PNGTuber
+// Bot de Twitch + reacciones automáticas según mensaje
 
 const tmi = require("tmi.js");
 const watcher = require("./watcher");
 const config = require("../config.json");
+
+// Diccionarios simples de palabras clave
+const happyWords = ["jaja", "xd", "😂", "😊", "jeje", "contento", "feliz"];
+const angryWords = ["malo", "enojo", "furia", "cállate", "odio", "😡", "enojado"];
+const sadWords   = ["triste", "lloro", "😭", "pena", "solo", "aburrido"];
 
 // Configuración del cliente de Twitch
 const client = new tmi.Client({
@@ -14,8 +19,17 @@ const client = new tmi.Client({
   channels: config.channels,
 });
 
-// Conectar el bot
 client.connect();
+
+// Función para analizar el mensaje
+function analyzeMessage(message) {
+  const msg = message.toLowerCase();
+
+  if (happyWords.some(word => msg.includes(word))) return "happy";
+  if (angryWords.some(word => msg.includes(word))) return "angry";
+  if (sadWords.some(word => msg.includes(word)))   return "sad";
+  return "talking"; // por defecto solo "hablando"
+}
 
 // Evento: cuando alguien escribe en el chat
 client.on("message", (channel, tags, message, self) => {
@@ -23,13 +37,22 @@ client.on("message", (channel, tags, message, self) => {
 
   console.log(`[${tags.username}]: ${message}`);
 
-  // Avatar habla
-  watcher.setTalking();
+  // Analiza el mensaje y cambia la pose
+  const mood = analyzeMessage(message);
 
-  // Comandos especiales para cambiar de pose
-  if (message.toLowerCase().includes("!happy")) watcher.setHappy();
-  if (message.toLowerCase().includes("!angry")) watcher.setAngry();
-  if (message.toLowerCase().includes("!sad")) watcher.setSad();
+  switch (mood) {
+    case "happy":
+      watcher.setHappy();
+      break;
+    case "angry":
+      watcher.setAngry();
+      break;
+    case "sad":
+      watcher.setSad();
+      break;
+    default:
+      watcher.setTalking();
+  }
 
   // Volver a idle después de 3 segundos
   setTimeout(() => watcher.setIdle(), 3000);
