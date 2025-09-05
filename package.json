@@ -1,0 +1,12 @@
+{
+  "name": "ia-pngtuber-prototype",
+  "version": "1.0.0",
+  "description": "PNGTuber con bot de Twitch integrado para Veadotube Mini",
+  "main": "src/bot.js",
+  "scripts": {
+    "start": "node src/bot.js"
+  },
+  "dependencies": {
+    "tmi.js": "^1.8.5"
+  }
+}
